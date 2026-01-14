@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>POMKA SA - Dashboard Stratégique</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Orbitron:wght@500;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+      :root {
+        --bg-color: #0f172a;
+        --card-bg: #1e293b;
+        --accent-primary: #f43f5e; /* Rose Touhou/Vif */
+        --accent-secondary: #3b82f6; /* Bleu Tech */
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --success: #10b981;
+        --danger: #ef4444;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        line-height: 1.6;
+        padding-bottom: 50px;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: "Orbitron", sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      /* Header */
+      header {
+        background: linear-gradient(90deg, #0f172a 0%, #331e28 100%);
+        padding: 2rem;
+        border-bottom: 2px solid var(--accent-primary);
+        text-align: center;
+        box-shadow: 0 0 20px rgba(244, 63, 94, 0.2);
+      }
+
+      header h1 {
+        font-size: 2.5rem;
+        color: var(--accent-primary);
+        text-shadow: 0 0 10px var(--accent-primary);
+      }
+      header p {
+        color: var(--accent-secondary);
+        font-weight: bold;
+      }
+
+      /* Container */
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      /* Grid Layout */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+      }
+
+      .grid-full {
+        grid-column: 1 / -1;
+      }
+
+      /* Cards */
+      .card {
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        transition: transform 0.2s;
+      }
+      .card:hover {
+        transform: translateY(-5px);
+        border-color: var(--accent-secondary);
+      }
+
+      .card h3 {
+        color: var(--accent-secondary);
+        margin-bottom: 15px;
+        font-size: 1.1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 10px;
+      }
+
+      /* Tables & Lists */
+      ul {
+        list-style: none;
+      }
+      li {
+        margin-bottom: 8px;
+        padding-left: 15px;
+        border-left: 2px solid var(--accent-primary);
+      }
+      .risk-high {
+        border-left-color: var(--danger);
+      }
+      .risk-med {
+        border-left-color: orange;
+      }
+
+      /* Calculator Styles */
+      .control-group {
+        margin-bottom: 15px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+      input[type="range"] {
+        width: 100%;
+        accent-color: var(--accent-primary);
+      }
+      .val-display {
+        float: right;
+        color: var(--accent-primary);
+        font-weight: bold;
+      }
+
+      .stat-box {
+        text-align: center;
+        background: rgba(0, 0, 0, 0.2);
+        padding: 10px;
+        border-radius: 8px;
+        margin-top: 10px;
+      }
+      .stat-val {
+        font-size: 1.5rem;
+        font-family: "Orbitron";
+      }
+      .profit {
+        color: var(--success);
+      }
+      .loss {
+        color: var(--danger);
+      }
+
+      /* Canvas for Chart */
+      .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+      }
+
+      /* Footer */
+      footer {
+        text-align: center;
+        margin-top: 50px;
+        color: var(--text-muted);
+        font-size: 0.8rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>POMKA SA</h1>
+      <p>Système de Gestion des Opérations & Analyses Stratégiques</p>
+      <div style="margin-top: 10px; font-size: 0.8rem; opacity: 0.7">
+        Statut: NON-OFFICIEL // Mode: GRAY MARKET
+      </div>
+    </header>
+
+    <div class="container">
+      <div class="grid">
+        <div class="grid-full">
+          <h2
+            style="
+              margin-bottom: 20px;
+              border-left: 5px solid var(--accent-primary);
+              padding-left: 15px;
+            "
+          >
+            1. Business Model Canvas
+          </h2>
+        </div>
+
+        <div class="card">
+          <h3>🛒 Proposition de Valeur</h3>
+          <ul>
+            <li>Accès immédiat (0 attente).</li>
+            <li>Prix "Ami" (< Prix Bar).</li>
+            <li>Expérience "Secret Club".</li>
+            <li>Boissons fraîches en mouvement.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>👥 Segments Clients (Personas)</h3>
+          <ul>
+            <li>
+              <strong>Le Geek Touhou:</strong> Cherche de l'énergie
+              (Mate/Caféine).
+            </li>
+            <li>
+              <strong>Le Festivalier Fauché:</strong> Veut le moins cher
+              possible.
+            </li>
+            <li>
+              <strong>L'Impatient:</strong> Déteste faire la queue au bar
+              officiel.
+            </li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>📢 Canaux & Relations</h3>
+          <ul>
+            <li>
+              <strong>Canal:</strong> Sac à dos (Vente directe), Instagram.
+            </li>
+            <li>
+              <strong>Relation:</strong> "Fausse amitié" (Remboursement de
+              frais).
+            </li>
+            <li>
+              <strong>Paiement:</strong> Twint (QR Code plastifié) / Cash.
+            </li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>💰 Flux de Revenus</h3>
+          <ul>
+            <li>Marge sur "Remboursements".</li>
+            <li>Pourboires (Arrondis Twint).</li>
+            <li>Objectif Marge: > 60% par unité.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="grid-full">
+          <h2
+            style="
+              margin-bottom: 20px;
+              border-left: 5px solid var(--success);
+              padding-left: 15px;
+            "
+          >
+            2. Simulateur de Soirée (Monte-Carlo Simplifié)
+          </h2>
+        </div>
+
+        <div class="card">
+          <h3>Paramètres de la Soirée</h3>
+
+          <div class="control-group">
+            <label
+              >Coût Achat Unitaire (CHF)
+              <span id="costVal" class="val-display">1.50</span></label
+            >
+            <input
+              type="range"
+              id="costInput"
+              min="0.5"
+              max="5"
+              step="0.1"
+              value="1.50"
+            />
+          </div>
+
+          <div class="control-group">
+            <label
+              >Prix de "Remboursement" (CHF)
+              <span id="priceVal" class="val-display">5.00</span></label
+            >
+            <input
+              type="range"
+              id="priceInput"
+              min="2"
+              max="15"
+              step="0.5"
+              value="5.00"
+            />
+          </div>
+
+          <div class="control-group">
+            <label
+              >Nombre de Ventes Estimé
+              <span id="salesVal" class="val-display">50</span></label
+            >
+            <input
+              type="range"
+              id="salesInput"
+              min="0"
+              max="200"
+              step="5"
+              value="50"
+            />
+          </div>
+
+          <div class="control-group">
+            <label
+              >Risque Police/Météo (Perte de Stock)
+              <span id="riskVal" class="val-display">10%</span></label
+            >
+            <input
+              type="range"
+              id="riskInput"
+              min="0"
+              max="100"
+              step="5"
+              value="10"
+            />
+          </div>
+        </div>
+
+        <div
+          class="card"
+          style="display: flex; flex-direction: column; justify-content: center"
+        >
+          <h3>Résultats Projetés</h3>
+          <div class="stat-box">
+            <div>Chiffre d'Affaires</div>
+            <div class="stat-val" id="totalRevenue">0 CHF</div>
+          </div>
+          <div class="stat-box">
+            <div>Coût Total</div>
+            <div class="stat-val" style="color: var(--danger)" id="totalCost">
+              0 CHF
+            </div>
+          </div>
+          <div class="stat-box">
+            <div>Bénéfice Net</div>
+            <div class="stat-val profit" id="netProfit">0 CHF</div>
+          </div>
+        </div>
+
+        <div class="card grid-full">
+          <h3>Scénarios : Pessimiste vs Réaliste vs Optimiste</h3>
+          <div class="chart-container">
+            <canvas id="scenarioChart"></canvas>
+          </div>
+          <p
+            style="
+              font-size: 0.8rem;
+              margin-top: 10px;
+              color: var(--text-muted);
+            "
+          >
+            *Le scénario pessimiste inclut une perte de stock ou une amende
+            mineure. L'optimiste suppose des pourboires élevés (+20%).
+          </p>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="grid-full">
+          <h2
+            style="
+              margin-bottom: 20px;
+              border-left: 5px solid var(--danger);
+              padding-left: 15px;
+            "
+          >
+            3. Matrice des Risques & Protocoles
+          </h2>
+        </div>
+
+        <div class="card">
+          <h3>⚖️ Risques Juridiques</h3>
+          <ul>
+            <li class="risk-high">
+              <strong>Loi Gastrosuisse (LHR):</strong> Vente sans patente =
+              Amende. <br /><em>Atténuation:</em> Ne jamais afficher de prix,
+              rester mobile.
+            </li>
+            <li class="risk-high">
+              <strong>Protection Mineurs:</strong> Vente -16 ans bière / -18 ans
+              spiritueux. <br /><em>Atténuation:</em> Contrôle visuel strict,
+              refus au moindre doute.
+            </li>
+            <li class="risk-med">
+              <strong>Fisc:</strong> Revenu non déclaré. <br /><em
+                >Atténuation:</em
+              >
+              Tenir un excel, rester sous le seuil "hobby".
+            </li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>🚑 Risques Physiques</h3>
+          <ul>
+            <li class="risk-med">
+              <strong>Intoxication Client:</strong> "Spiking" ou allergie.
+              <br /><em>Atténuation:</em> Servir canette fermée ou verser devant
+              eux.
+            </li>
+            <li class="risk-med">
+              <strong>Agression:</strong> Client ivre refuse de payer. <br /><em
+                >Atténuation:</em
+              >
+              Laisser tomber (Perte sèche < Sécurité).
+            </li>
+            <li class="risk-high">
+              <strong>Sécurité/Police:</strong> Contrôle. <br /><em
+                >Protocole:</em
+              >
+              Code "MARISA".
+            </li>
+          </ul>
+        </div>
+
+        <div class="card grid-full" style="border-color: var(--accent-primary)">
+          <h3>🚨 PROTOCOLE D'URGENCE : CODE "MARISA"</h3>
+          <div
+            style="
+              display: flex;
+              gap: 20px;
+              align-items: center;
+              margin-top: 10px;
+            "
+          >
+            <div style="font-size: 3rem">🧹</div>
+            <div>
+              <p><strong>Si un membre de POMKA prononce "MARISA" :</strong></p>
+              <ol style="margin-left: 20px; margin-top: 5px">
+                <li>Arrêt immédiat de toute transaction.</li>
+                <li>Dissimulation du QR Code Twint.</li>
+                <li>
+                  Séparation physique des deux fondateurs (partir dans des
+                  directions opposées).
+                </li>
+                <li>
+                  Scénario de couverture : "On est juste venus avec nos propres
+                  boissons pour la fête."
+                </li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>&copy; 2026 POMKA SA - Moutier, CH. Developed by Opaline.</p>
+      <p style="font-size: 0.7rem; opacity: 0.5">
+        Disclaimer: This tool is for educational simulation only.
+      </p>
+    </footer>
+
+    <script>
+      // --- LOGIQUE JAVASCRIPT ---
+
+      // Récupération des éléments du DOM
+      const costInput = document.getElementById("costInput");
+      const priceInput = document.getElementById("priceInput");
+      const salesInput = document.getElementById("salesInput");
+      const riskInput = document.getElementById("riskInput");
+
+      const costVal = document.getElementById("costVal");
+      const priceVal = document.getElementById("priceVal");
+      const salesVal = document.getElementById("salesVal");
+      const riskVal = document.getElementById("riskVal");
+
+      const totalRevenueEl = document.getElementById("totalRevenue");
+      const totalCostEl = document.getElementById("totalCost");
+      const netProfitEl = document.getElementById("netProfit");
+
+      // Initialisation du Chart.js
+      let scenarioChart;
+
+      function initChart() {
+        const ctx = document.getElementById("scenarioChart").getContext("2d");
+        scenarioChart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: [
+              "Pessimiste (Pluie/Police)",
+              "Réaliste",
+              "Optimiste (Whales)",
+            ],
+            datasets: [
+              {
+                label: "Profit Estimé (CHF)",
+                data: [0, 0, 0],
+                backgroundColor: [
+                  "rgba(239, 68, 68, 0.7)", // Rouge
+                  "rgba(59, 130, 246, 0.7)", // Bleu
+                  "rgba(16, 185, 129, 0.7)", // Vert
+                ],
+                borderColor: [
+                  "rgba(239, 68, 68, 1)",
+                  "rgba(59, 130, 246, 1)",
+                  "rgba(16, 185, 129, 1)",
+                ],
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: "rgba(255,255,255,0.1)" },
+                ticks: { color: "#94a3b8" },
+              },
+              x: {
+                grid: { display: false },
+                ticks: { color: "#94a3b8" },
+              },
+            },
+            plugins: {
+              legend: { display: false },
+            },
+          },
+        });
+      }
+
+      // Fonction de calcul principale
+      function calculate() {
+        // Lecture des valeurs
+        const cost = parseFloat(costInput.value);
+        const price = parseFloat(priceInput.value);
+        const sales = parseInt(salesInput.value);
+        const risk = parseInt(riskInput.value) / 100;
+
+        // Mise à jour des affichages textes
+        costVal.textContent = cost.toFixed(2);
+        priceVal.textContent = price.toFixed(2);
+        salesVal.textContent = sales;
+        riskVal.textContent = risk * 100 + "%";
+
+        // Calculs Financiers de base (Réaliste)
+        const revenue = sales * price;
+        const cogs = sales * cost; // Cost of Goods Sold
+        // Risque financier : on perd le COGS sur une partie du stock ou amende
+        const riskCost = cogs * risk + (risk > 0.5 ? 200 : 0); // Si risque > 50%, on simule une amende de 200CHF
+
+        const profit = revenue - cogs - riskCost;
+
+        // Mise à jour du dashboard
+        totalRevenueEl.textContent = revenue.toFixed(2) + " CHF";
+        totalCostEl.textContent = (cogs + riskCost).toFixed(2) + " CHF";
+        netProfitEl.textContent = profit.toFixed(2) + " CHF";
+
+        // Styling Profit/Perte
+        if (profit >= 0) {
+          netProfitEl.classList.remove("loss");
+          netProfitEl.classList.add("profit");
+        } else {
+          netProfitEl.classList.remove("profit");
+          netProfitEl.classList.add("loss");
+        }
+
+        // --- SCENARIOS (LOGIQUE MONTE CARLO SIMPLIFIEE) ---
+
+        // 1. Pessimiste : Ventes divisées par 2, Risque appliqué au max, Pas de pourboire
+        const pessSales = Math.floor(sales * 0.5);
+        const pessProfit = pessSales * price - sales * cost - 100; // On a acheté tout le stock (sales * cost) mais vendu la moitié, + 100 CHF perte divers
+
+        // 2. Réaliste : Calcul actuel
+        const realProfit = profit;
+
+        // 3. Optimiste : Ventes + 20% (demande forte), Risque 0, Pourboire +10%
+        const optSales = Math.floor(sales * 1.2);
+        // On suppose qu'on avait assez de stock ou qu'on a couru en racheter
+        const optRevenue = optSales * price * 1.1; // +10% tips
+        const optCost = optSales * cost;
+        const optProfit = optRevenue - optCost;
+
+        // Update Chart
+        scenarioChart.data.datasets[0].data = [
+          pessProfit.toFixed(2),
+          realProfit.toFixed(2),
+          optProfit.toFixed(2),
+        ];
+        scenarioChart.update();
+      }
+
+      // Listeners
+      [costInput, priceInput, salesInput, riskInput].forEach((input) => {
+        input.addEventListener("input", calculate);
+      });
+
+      // Init
+      initChart();
+      calculate();
+    </script>
+  </body>
+</html>
