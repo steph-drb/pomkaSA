@@ -67,4 +67,140 @@
             <li contenteditable="true">Expérience "Secret Club".</li>
           </ul>
         </div>
-        <div
+        <div class="card">
+          <h3>👥 Segments Clients</h3>
+          <ul>
+            <li contenteditable="true"><strong>Le Geek Touhou:</strong> Cherche de l'énergie.</li>
+            <li contenteditable="true"><strong>L'Impatient:</strong> Déteste la queue.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>💰 Flux de Revenus</h3>
+          <ul>
+            <li contenteditable="true">Marge sur "Remboursements".</li>
+            <li contenteditable="true">Objectif Marge: > 60%.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="grid-full"><h2>2. Simulateur Financier & Opérationnel</h2></div>
+        <div class="card">
+          <div class="control-group">
+            <label>Coût Achat (CHF) <span id="costVal" class="val-display">1.50</span></label>
+            <input type="range" id="costInput" min="0.5" max="5" step="0.1" value="1.50" />
+          </div>
+          <div class="control-group">
+            <label>Prix Vente (CHF) <span id="priceVal" class="val-display">5.00</span></label>
+            <input type="range" id="priceInput" min="2" max="15" step="0.5" value="5.00" />
+          </div>
+          <div class="control-group">
+            <label>Ventes <span id="salesVal" class="val-display">50</span></label>
+            <input type="range" id="salesInput" min="0" max="200" step="5" value="50" />
+          </div>
+          <div class="control-group">
+            <label>Temps / Unité (min) <span id="timeVal" class="val-display">5</span></label>
+            <input type="range" id="timeInput" min="1" max="60" step="1" value="5" />
+          </div>
+        </div>
+        <div class="card">
+          <div class="stat-box">
+            <div>Bénéfice Net</div>
+            <div class="stat-val profit" id="netProfit">0 CHF</div>
+          </div>
+          <div class="stat-box">
+            <div>Temps de Travail Total</div>
+            <div class="stat-val" id="totalTime" style="color: var(--accent-secondary);">0h 00m</div>
+          </div>
+          <div class="stat-box">
+            <div>Rentabilité Horaire</div>
+            <div class="stat-val" id="hourlyRate" style="color: #eab308;">0 CHF/h</div>
+          </div>
+        </div>
+        <div class="card grid-full"><div class="chart-container"><canvas id="scenarioChart"></canvas></div></div>
+      </div>
+    </div>
+
+    <footer><p>&copy; 2026 POMKA SA - Moutier, CH.</p></footer>
+
+    <script>
+      const SUPABASE_URL = 'https://jythapadyguuktsrkjxv.supabase.co';
+      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5dGhhcGFkeWd1dWt0c3Jranh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NTM3MjksImV4cCI6MjA4NDAyOTcyOX0.8pdyVotuywtI6UpCao2lCpulTwU-4U5Lf3yv35FT-Ec';
+      const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+      const editableElements = document.querySelectorAll('[contenteditable="true"]');
+      const syncStatus = document.getElementById('sync-status');
+      const costInput = document.getElementById("costInput");
+      const priceInput = document.getElementById("priceInput");
+      const salesInput = document.getElementById("salesInput");
+      const timeInput = document.getElementById("timeInput");
+      let scenarioChart;
+
+      async function loadData() {
+        const { data } = await supabaseClient.from('content').select('data').eq('id', 1).single();
+        if (data && data.data) {
+          editableElements.forEach((el, index) => { if (data.data[index]) el.innerHTML = data.data[index]; });
+        }
+        initChart();
+        calculate();
+      }
+
+      async function saveData() {
+        syncStatus.style.opacity = 1; syncStatus.textContent = "⌛ Sauvegarde...";
+        let contentToSave = {};
+        editableElements.forEach((el, index) => { contentToSave[index] = el.innerHTML; });
+        const { error } = await supabaseClient.from('content').update({ data: contentToSave }).eq('id', 1);
+        if (!error) {
+          syncStatus.textContent = "✓ Synchronisé";
+          setTimeout(() => syncStatus.style.opacity = 0, 2000);
+        }
+      }
+
+      function initChart() {
+        const ctx = document.getElementById("scenarioChart").getContext("2d");
+        scenarioChart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: ["Pessimiste", "Réaliste", "Optimiste"],
+            datasets: [{ label: "Profit (CHF)", data: [0, 0, 0], backgroundColor: ["#ef4444", "#3b82f6", "#10b981"] }]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+
+      function calculate() {
+        const cost = parseFloat(costInput.value);
+        const price = parseFloat(priceInput.value);
+        const sales = parseInt(salesInput.value);
+        const timePerUnit = parseInt(timeInput.value);
+
+        document.getElementById("costVal").textContent = cost.toFixed(2);
+        document.getElementById("priceVal").textContent = price.toFixed(2);
+        document.getElementById("salesVal").textContent = sales;
+        document.getElementById("timeVal").textContent = timePerUnit;
+
+        const profit = (price - cost) * sales;
+        const netProfitEl = document.getElementById("netProfit");
+        netProfitEl.textContent = profit.toFixed(2) + " CHF";
+        netProfitEl.className = profit >= 0 ? "stat-val profit" : "stat-val loss";
+
+        const totalMinutes = sales * timePerUnit;
+        const hours = Math.floor(totalMinutes / 60);
+        const mins = totalMinutes % 60;
+        document.getElementById("totalTime").textContent = `${hours}h ${mins.toString().padStart(2, '0')}m`;
+
+        const hourlyRate = totalMinutes > 0 ? (profit / (totalMinutes / 60)) : 0;
+        document.getElementById("hourlyRate").textContent = hourlyRate.toFixed(2) + " CHF/h";
+
+        if (scenarioChart) {
+            scenarioChart.data.datasets[0].data = [profit * 0.5, profit, profit * 1.3];
+            scenarioChart.update();
+        }
+      }
+
+      window.onload = loadData;
+      editableElements.forEach(el => el.addEventListener('blur', saveData));
+      [costInput, priceInput, salesInput, timeInput].forEach(input => input.addEventListener("input", calculate));
+    </script>
+  </body>
+</html>
