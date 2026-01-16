@@ -27,7 +27,7 @@
       header h1 { font-size: 2.5rem; color: var(--accent-primary); }
       
       .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 40px; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 40px; }
       .grid-full { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
       
       .card { background-color: var(--card-bg); border-radius: 12px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.05); position: relative; display: flex; flex-direction: column; }
@@ -36,87 +36,118 @@
       .editable-title { border-bottom: 1px solid transparent; transition: 0.3s; cursor: text; margin-bottom: 15px; width: 100%; font-size: 1.2rem; }
       .editable-title:hover { background: rgba(255,255,255,0.03); border-bottom-color: var(--accent-secondary); }
       [contenteditable="true"] { outline: none; border-radius: 4px; }
-      [contenteditable="true"]:focus { background: rgba(59, 130, 246, 0.1); }
 
-      /* Listes de sous-titres */
+      /* Listes BMC */
       ul { list-style: none; flex-grow: 1; margin-bottom: 10px; }
       li { margin-bottom: 8px; padding-left: 10px; border-left: 3px solid var(--accent-primary); display: flex; align-items: center; justify-content: space-between; }
       .item-text { flex-grow: 1; outline: none; }
       .btn-del-item { color: var(--text-muted); cursor: pointer; font-size: 0.8rem; opacity: 0; padding: 0 5px; }
       li:hover .btn-del-item { opacity: 1; color: var(--danger); }
 
-      /* Logistique & Progress */
+      /* Logistique */
       .progress-container { background: #000; border-radius: 20px; height: 20px; width: 100%; margin: 10px 0; overflow: hidden; border: 1px solid var(--accent-secondary); }
       .progress-bar { background: linear-gradient(90deg, var(--accent-secondary), var(--success)); height: 100%; width: 0%; transition: width 0.5s; }
       .inventory-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 6px; }
       
-      /* Boutons */
+      /* Simulateur & Sliders */
+      .slider-group { margin-bottom: 15px; }
+      .slider-label { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 5px; color: var(--text-muted); }
+      .slider-label span { color: var(--accent-secondary); font-weight: bold; }
+      input[type="range"] { width: 100%; accent-color: var(--accent-primary); cursor: pointer; }
+      
+      .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .stat-box { text-align: center; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
+      .stat-val { font-size: 1.2rem; font-family: "Orbitron"; color: var(--success); }
+      .stat-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; }
+
       .btn { padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.7rem; font-family: 'Orbitron'; transition: 0.3s; text-transform: uppercase; border: 1px solid transparent; }
       .btn-add { background: rgba(244, 63, 94, 0.1); color: var(--accent-primary); border: 1px dashed var(--accent-primary); margin-top: 10px; }
-      .btn-del-col { background: transparent; color: var(--text-muted); border-color: rgba(255,255,255,0.1); margin-top: 10px; }
-      .btn-del-col:hover { background: var(--danger); color: white; }
       .btn-main-add { background: var(--accent-secondary); color: white; }
-
-      /* Simulateur */
-      input[type="range"] { width: 100%; accent-color: var(--accent-primary); }
-      input[type="number"] { background: #0f172a; color: white; border: 1px solid var(--accent-primary); padding: 5px; border-radius: 4px; width: 100%; }
-      .stat-box { text-align: center; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; }
-      .stat-val { font-size: 1.8rem; font-family: "Orbitron"; color: var(--success); }
-
+      
       #sync-status { font-size: 0.7rem; margin-top: 5px; color: var(--success); opacity: 0; transition: opacity 0.5s; }
     </style>
   </head>
   <body>
     <header>
       <h1>POMKA SA</h1>
-      <p>Management Dashboard v3.0</p>
-      <div id="sync-status">✓ Synchronisé</div>
+      <p>Management Dashboard v3.5 - Business Intelligence</p>
+      <div id="sync-status">✓ Données synchronisées</div>
     </header>
 
     <div class="container">
       <div class="grid-full">
         <h2>1. Business Model Canvas</h2>
-        <button class="btn btn-main-add" onclick="createNewColumn()">＋ Ajouter colonne</button>
+        <button class="btn btn-main-add" onclick="createNewColumn()">＋ Colonne</button>
       </div>
       <div class="grid" id="bmc-grid"></div>
 
-      <div class="grid-full"><h2>2. Objectifs & Logistique</h2></div>
+      <div class="grid-full"><h2>2. Logistique & Objectifs</h2></div>
       <div class="grid">
         <div class="card">
-          <h3 class="editable-title" contenteditable="true" id="title-goal" onblur="saveLogistics()">🎯 Objectif Refuge</h3>
-          <input type="number" id="goalInput" value="500" oninput="calculate()">
+          <h3 class="editable-title" contenteditable="true" id="title-goal" onblur="saveAll()">🎯 Objectif de Financement</h3>
+          <input type="number" id="goalInput" value="500" oninput="calculate()" style="background:#0f172a; color:white; border:1px solid var(--accent-primary); padding:5px; width:100%; border-radius:4px;">
           <div class="progress-container"><div id="progressBar" class="progress-bar"></div></div>
-          <p id="progressText" style="text-align: center; font-weight: bold; font-size: 0.8rem;">0% financé</p>
+          <p id="progressText" style="text-align: center; font-weight: bold; font-size: 0.8rem;">0%</p>
         </div>
         <div class="card">
-          <h3 class="editable-title" contenteditable="true" id="title-network" onblur="saveLogistics()">📱 Réseau VIP</h3>
+          <h3 class="editable-title" contenteditable="true" id="title-network" onblur="saveAll()">📱 Réseau VIP</h3>
           <div class="stat-box">
-            <div class="stat-val" id="contactCount" contenteditable="true" onblur="saveLogistics()" style="color: var(--accent-secondary)">0</div>
-            <div style="font-size: 0.7rem;">Contacts Actifs</div>
+            <div class="stat-val" id="contactCount" contenteditable="true" onblur="saveAll()" style="color: var(--accent-secondary); font-size: 2rem;">0</div>
+            <div class="stat-label">Contacts Actifs</div>
           </div>
         </div>
         <div class="card">
-          <h3 class="editable-title" contenteditable="true" id="title-stash" onblur="saveLogistics()">🧊 Inventaire</h3>
+          <h3 class="editable-title" contenteditable="true" id="title-stash" onblur="saveAll()">🧊 Inventaire</h3>
           <div id="inventoryContainer"></div>
           <button class="btn btn-add" onclick="addInventoryItem()">＋ Objet</button>
         </div>
       </div>
 
-      <div class="grid-full"><h2>3. Simulateur Financier</h2></div>
+      <div class="grid-full"><h2>3. Simulateur de Rentabilité Avancé</h2></div>
       <div class="grid">
         <div class="card">
-          <label>Coût / Prix / Ventes</label>
-          <input type="range" id="costInput" min="0" max="10" step="0.1" value="1.5" oninput="calculate()">
-          <input type="range" id="priceInput" min="0" max="20" step="0.5" value="5" oninput="calculate()">
-          <input type="range" id="salesInput" min="0" max="500" step="10" value="50" oninput="calculate()">
-        </div>
-        <div class="card">
-          <div class="stat-box">
-            <div>Bénéfice Net Estimé</div>
-            <div class="stat-val" id="netProfit">0 CHF</div>
+          <div class="slider-group">
+            <div class="slider-label">Coût Unitaire : <span id="val-cost">1.50</span> CHF</div>
+            <input type="range" id="costInput" min="0" max="20" step="0.1" value="1.5" oninput="calculate()">
+          </div>
+          <div class="slider-group">
+            <div class="slider-label">Prix de Vente : <span id="val-price">5.00</span> CHF</div>
+            <input type="range" id="priceInput" min="0" max="50" step="0.5" value="5" oninput="calculate()">
+          </div>
+          <div class="slider-group">
+            <div class="slider-label">Volume de Ventes : <span id="val-sales">50</span></div>
+            <input type="range" id="salesInput" min="0" max="1000" step="10" value="50" oninput="calculate()">
+          </div>
+          <div class="slider-group">
+            <div class="slider-label">Temps de Travail : <span id="val-hours">2</span> h</div>
+            <input type="range" id="hoursInput" min="0" max="100" step="1" value="2" oninput="calculate()">
           </div>
         </div>
-        <div class="card grid-full"><canvas id="scenarioChart" style="max-height: 200px;"></canvas></div>
+
+        <div class="card">
+          <div class="stat-grid">
+            <div class="stat-box">
+              <div class="stat-label">Coût Total</div>
+              <div class="stat-val" id="totalCost" style="color: var(--danger)">0 CHF</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Bénéfice Net</div>
+              <div class="stat-val" id="netProfit">0 CHF</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Marge Brute</div>
+              <div class="stat-val" id="marginPercent" style="color: var(--accent-secondary)">0%</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Salaire Horaire</div>
+              <div class="stat-val" id="hourlyRate" style="color: #fbbf24">0 CHF/h</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="grid-column: span 1;">
+          <canvas id="scenarioChart" style="max-height: 220px;"></canvas>
+        </div>
       </div>
     </div>
 
@@ -124,24 +155,19 @@
       const SUPABASE_URL = 'https://jythapadyguuktsrkjxv.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5dGhhcGFkeWd1dWt0c3Jranh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NTM3MjksImV4cCI6MjA4NDAyOTcyOX0.8pdyVotuywtI6UpCao2lCpulTwU-4U5Lf3yv35FT-Ec';
       const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      let chart;
 
       async function loadData() {
         const { data } = await supabaseClient.from('content').select('data').eq('id', 1).single();
         if (data && data.data) {
           const d = data.data;
-          // Colonnes BMC
           const bmcGrid = document.getElementById('bmc-grid');
           bmcGrid.innerHTML = '';
           if(d.columns) d.columns.forEach(col => renderColumn(col));
-
-          // Logistique
           if(d.goal) document.getElementById('goalInput').value = d.goal;
           if(d.contacts) document.getElementById('contactCount').innerText = d.contacts;
           if(d.logisticsTitles) {
-            Object.keys(d.logisticsTitles).forEach(id => {
-              const el = document.getElementById(id);
-              if(el) el.innerText = d.logisticsTitles[id];
-            });
+            Object.keys(d.logisticsTitles).forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerText = d.logisticsTitles[id]; });
           }
           const invContainer = document.getElementById('inventoryContainer');
           invContainer.innerHTML = '';
@@ -155,16 +181,8 @@
         const grid = document.getElementById('bmc-grid');
         const colId = 'col-' + Math.random().toString(36).substr(2, 9);
         const card = document.createElement('div');
-        card.className = 'card';
-        card.id = colId;
-        card.innerHTML = `
-          <h3 class="editable-title" contenteditable="true" onblur="saveAll()">${colData.title}</h3>
-          <ul class="item-list"></ul>
-          <div style="display:flex; gap:10px">
-            <button class="btn btn-add" onclick="addItemToCol('${colId}')">＋ Sous-titre</button>
-            <button class="btn btn-del-col" onclick="removeColumn('${colId}')">✕</button>
-          </div>
-        `;
+        card.className = 'card'; card.id = colId;
+        card.innerHTML = `<h3 class="editable-title" contenteditable="true" onblur="saveAll()">${colData.title}</h3><ul class="item-list"></ul><div style="display:flex; gap:10px"><button class="btn btn-add" onclick="addItemToCol('${colId}')">＋</button><button class="btn" onclick="removeColumn('${colId}')" style="color:var(--text-muted)">✕</button></div>`;
         grid.appendChild(card);
         const ul = card.querySelector('ul');
         colData.items.forEach(text => renderItem(ul, text));
@@ -177,67 +195,88 @@
       }
 
       function addItemToCol(id) { renderItem(document.querySelector(`#${id} ul`), "Nouveau..."); saveAll(); }
-      function createNewColumn() { renderColumn({title: "Nouveau Titre", items: ["Nouveau..."]}); saveAll(); }
-      function removeColumn(id) { if(confirm("Supprimer cette colonne ?")) { document.getElementById(id).remove(); saveAll(); } }
+      function createNewColumn() { renderColumn({title: "Nouveau", items: ["..."]}); saveAll(); }
+      function removeColumn(id) { if(confirm("Supprimer ?")) { document.getElementById(id).remove(); saveAll(); } }
 
       function renderInventoryItem(text, checked) {
-        const div = document.createElement('div');
-        div.className = 'inventory-item';
+        const div = document.createElement('div'); div.className = 'inventory-item';
         div.innerHTML = `<input type="checkbox" ${checked?'checked':''} onchange="saveAll()"><div contenteditable="true" class="item-text" onblur="saveAll()">${text}</div><div class="btn-del-item" onclick="this.parentElement.remove(); saveAll();" style="opacity:1">✕</div>`;
         document.getElementById('inventoryContainer').appendChild(div);
       }
       function addInventoryItem() { renderInventoryItem("Objet...", false); saveAll(); }
 
-      async function saveAll() {
-        const syncStatus = document.getElementById('sync-status');
-        syncStatus.style.opacity = 1;
-        
-        const columns = Array.from(document.querySelectorAll('#bmc-grid .card')).map(card => ({
-          title: card.querySelector('.editable-title').innerText,
-          items: Array.from(card.querySelectorAll('.item-text')).map(el => el.innerText)
-        }));
-
-        const inventory = Array.from(document.querySelectorAll('.inventory-item')).map(el => ({
-          text: el.querySelector('.item-text').innerText,
-          checked: el.querySelector('input').checked
-        }));
-
-        const data = {
-          columns,
-          inventory,
-          goal: document.getElementById('goalInput').value,
-          contacts: document.getElementById('contactCount').innerText,
-          logisticsTitles: {
-            'title-goal': document.getElementById('title-goal').innerText,
-            'title-network': document.getElementById('title-network').innerText,
-            'title-stash': document.getElementById('title-stash').innerText
-          }
-        };
-
-        await supabaseClient.from('content').update({ data }).eq('id', 1);
-        syncStatus.style.opacity = 0;
-      }
-
       function calculate() {
         const cost = parseFloat(document.getElementById("costInput").value);
         const price = parseFloat(document.getElementById("priceInput").value);
         const sales = parseInt(document.getElementById("salesInput").value);
-        const goal = parseFloat(document.getElementById("goalInput").value) || 1;
-        const profit = (price - cost) * sales;
+        const hours = parseFloat(document.getElementById("hoursInput").value) || 1;
+        const target = parseFloat(document.getElementById("goalInput").value) || 1;
+
+        // Mises à jour labels
+        document.getElementById("val-cost").innerText = cost.toFixed(2);
+        document.getElementById("val-price").innerText = price.toFixed(2);
+        document.getElementById("val-sales").innerText = sales;
+        document.getElementById("val-hours").innerText = hours;
+
+        // Calculs
+        const totalRevenue = price * sales;
+        const totalExpenses = cost * sales;
+        const profit = totalRevenue - totalExpenses;
+        const margin = totalRevenue > 0 ? (profit / totalRevenue) * 100 : 0;
+        const hourly = profit / hours;
+
+        // Affichage stats
+        document.getElementById("totalCost").textContent = totalExpenses.toFixed(2) + " CHF";
         document.getElementById("netProfit").textContent = profit.toFixed(2) + " CHF";
-        const percent = Math.min((profit / goal) * 100, 100);
+        document.getElementById("marginPercent").textContent = margin.toFixed(1) + "%";
+        document.getElementById("hourlyRate").textContent = hourly.toFixed(2) + " CHF/h";
+
+        // Progress bar
+        const percent = Math.min((profit / target) * 100, 100);
         document.getElementById("progressBar").style.width = percent + "%";
-        document.getElementById("progressText").textContent = Math.round(percent) + "% financé";
-        saveAll();
+        document.getElementById("progressText").textContent = Math.round(percent) + "% de l'objectif";
+
+        updateChart(totalRevenue, totalExpenses, profit);
       }
 
       function initChart() {
         const ctx = document.getElementById("scenarioChart").getContext("2d");
-        window.scenarioChart = new Chart(ctx, {
-          type: "bar",
-          data: { labels: ["Revenu"], datasets: [{ label: "CHF", data: [0], backgroundColor: "#3b82f6" }] },
-          options: { responsive: true, maintainAspectRatio: false }
+        chart = new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: ["Coûts Totaux", "Bénéfice Net"],
+            datasets: [{
+              data: [0, 0],
+              backgroundColor: ["#ef4444", "#10b981"],
+              borderWidth: 0,
+              hoverOffset: 10
+            }]
+          },
+          options: {
+            plugins: { legend: { position: 'bottom', labels: { color: '#f8fafc', font: { family: 'Orbitron', size: 10 } } } },
+            maintainAspectRatio: false
+          }
         });
+      }
+
+      function updateChart(rev, cost, profit) {
+        if(!chart) return;
+        chart.data.datasets[0].data = [cost, profit > 0 ? profit : 0];
+        chart.update();
+      }
+
+      async function saveAll() {
+        const sync = document.getElementById('sync-status');
+        sync.style.opacity = 1;
+        const data = {
+          columns: Array.from(document.querySelectorAll('#bmc-grid .card')).map(c => ({ title: c.querySelector('.editable-title').innerText, items: Array.from(c.querySelectorAll('.item-text')).map(i => i.innerText) })),
+          inventory: Array.from(document.querySelectorAll('.inventory-item')).map(e => ({ text: e.querySelector('.item-text').innerText, checked: e.querySelector('input').checked })),
+          goal: document.getElementById('goalInput').value,
+          contacts: document.getElementById('contactCount').innerText,
+          logisticsTitles: { 'title-goal': document.getElementById('title-goal').innerText, 'title-network': document.getElementById('title-network').innerText, 'title-stash': document.getElementById('title-stash').innerText }
+        };
+        await supabaseClient.from('content').update({ data }).eq('id', 1);
+        setTimeout(() => sync.style.opacity = 0, 1000);
       }
 
       window.onload = loadData;
