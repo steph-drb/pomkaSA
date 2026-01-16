@@ -32,8 +32,7 @@
       .grid-full { grid-column: 1 / -1; }
       .card { background-color: var(--card-bg); border-radius: 12px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.05); position: relative; }
       
-      [contenteditable="true"] { outline: none; transition: all 0.2s; border-radius: 4px; padding: 2px 5px; display: block; width: 100%; }
-      [contenteditable="true"]:hover { background: rgba(255, 255, 255, 0.05); }
+      [contenteditable="true"] { outline: none; transition: all 0.2s; border-radius: 4px; padding: 2px 5px; }
       [contenteditable="true"]:focus { background: rgba(59, 130, 246, 0.1); box-shadow: 0 0 0 2px var(--accent-secondary); }
 
       ul { list-style: none; margin-bottom: 10px; }
@@ -48,11 +47,17 @@
         cursor: pointer; 
         font-size: 0.8rem; 
         font-family: 'Orbitron';
+        margin-top: 10px;
       }
 
       /* Progress Bar */
       .progress-container { background: #000; border-radius: 20px; height: 25px; width: 100%; margin: 15px 0; overflow: hidden; border: 1px solid var(--accent-secondary); }
       .progress-bar { background: linear-gradient(90deg, var(--accent-secondary), var(--success)); height: 100%; width: 0%; transition: width 0.5s; }
+
+      /* Inventory Dynamic */
+      .inventory-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; background: rgba(0,0,0,0.1); padding: 5px; border-radius: 6px; }
+      .inventory-text { flex-grow: 1; font-size: 0.9rem; }
+      .btn-del { color: var(--danger); cursor: pointer; font-weight: bold; padding: 0 5px; }
 
       /* Inputs */
       .control-group { margin-bottom: 15px; }
@@ -63,13 +68,8 @@
       .stat-box { text-align: center; background: rgba(0, 0, 0, 0.2); padding: 10px; border-radius: 8px; margin-top: 10px; }
       .stat-val { font-size: 1.5rem; font-family: "Orbitron"; }
       .profit { color: var(--success); }
-      .loss { color: var(--danger); }
       .chart-container { height: 300px; width: 100%; }
       
-      /* Inventory */
-      .check-item { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; cursor: pointer; }
-      input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--success); }
-
       footer { text-align: center; margin-top: 50px; color: var(--text-muted); font-size: 0.8rem; }
       #sync-status { font-size: 0.7rem; margin-top: 5px; color: var(--success); opacity: 0; transition: opacity 0.5s; }
     </style>
@@ -121,12 +121,9 @@
         </div>
         <div class="card">
           <h3>🧊 Inventaire (Stash)</h3>
-          <div id="inventoryList">
-            <label class="check-item"><input type="checkbox" onchange="saveData()"> Alcool base</label>
-            <label class="check-item"><input type="checkbox" onchange="saveData()"> Sirops & Fruits</label>
-            <label class="check-item"><input type="checkbox" onchange="saveData()"> Glace (2x 5kg)</label>
-            <label class="check-item"><input type="checkbox" onchange="saveData()"> Gobelets & Pailles</label>
-          </div>
+          <div id="inventoryContainer">
+            </div>
+          <button class="add-item-btn" onclick="addInventoryItem()">＋ Ajouter un objet</button>
         </div>
       </div>
 
@@ -196,8 +193,16 @@
           // Charger Ops
           if(data.data.contacts) document.getElementById('contactCount').innerText = data.data.contacts;
           if(data.data.goal) document.getElementById('goalInput').value = data.data.goal;
-          if(data.data.inventory) {
-            document.querySelectorAll('#inventoryList input').forEach((c, i) => c.checked = data.data.inventory[i] || false);
+          
+          // Charger Inventaire Dynamique
+          const container = document.getElementById('inventoryContainer');
+          container.innerHTML = '';
+          if(data.data.dynamicInventory) {
+            data.data.dynamicInventory.forEach(item => renderInventoryItem(item.text, item.checked));
+          } else {
+            // Par défaut si vide
+            renderInventoryItem("Alcool base", false);
+            renderInventoryItem("Glace", false);
           }
         }
         initChart();
@@ -208,10 +213,19 @@
         const syncStatus = document.getElementById('sync-status');
         syncStatus.style.opacity = 1; syncStatus.textContent = "⌛ Sauvegarde...";
         
+        // Collecter Inventaire
+        const invItems = [];
+        document.querySelectorAll('.inventory-item').forEach(el => {
+          invItems.push({
+            text: el.querySelector('.inventory-text').innerText,
+            checked: el.querySelector('input').checked
+          });
+        });
+
         let contentToSave = {
           contacts: document.getElementById('contactCount').innerText,
           goal: document.getElementById('goalInput').value,
-          inventory: Array.from(document.querySelectorAll('#inventoryList input')).map(c => c.checked)
+          dynamicInventory: invItems
         };
         
         document.querySelectorAll('.bmc-list').forEach(list => {
@@ -222,6 +236,20 @@
         syncStatus.textContent = "✓ Synchronisé";
         setTimeout(() => syncStatus.style.opacity = 0, 2000);
       }
+
+      function renderInventoryItem(text, checked) {
+        const container = document.getElementById('inventoryContainer');
+        const div = document.createElement('div');
+        div.className = 'inventory-item';
+        div.innerHTML = `
+          <input type="checkbox" ${checked ? 'checked' : ''} onchange="saveData()">
+          <div class="inventory-text" contenteditable="true" onblur="saveData()">${text}</div>
+          <div class="btn-del" onclick="this.parentElement.remove(); saveData();">×</div>
+        `;
+        container.appendChild(div);
+      }
+
+      function addInventoryItem() { renderInventoryItem("Nouvel objet...", false); saveData(); }
 
       function createLi(parentUl, text) {
         const li = document.createElement('li');
