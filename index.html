@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>POMKA SA - Dashboard Stratégique Cloud</title>
+    <title>POMKA SA - Dashboard Opérationnel</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Orbitron:wght@500;900&display=swap" rel="stylesheet" />
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -19,6 +19,7 @@
         --text-muted: #94a3b8;
         --success: #10b981;
         --danger: #ef4444;
+        --warning: #eab308;
       }
 
       * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -29,196 +30,201 @@
       .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
       .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 40px; }
       .grid-full { grid-column: 1 / -1; }
-      .card { background-color: var(--card-bg); border-radius: 12px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.05); position: relative; }
+      .card { background-color: var(--card-bg); border-radius: 12px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.05); }
       
-      [contenteditable="true"] { outline: none; transition: all 0.2s; border-radius: 4px; padding: 2px 5px; display: block; width: 100%; }
-      [contenteditable="true"]:hover { background: rgba(255, 255, 255, 0.05); }
+      [contenteditable="true"] { outline: none; border-radius: 4px; padding: 2px 5px; }
       [contenteditable="true"]:focus { background: rgba(59, 130, 246, 0.1); box-shadow: 0 0 0 2px var(--accent-secondary); }
 
       ul { list-style: none; margin-bottom: 10px; }
-      li { margin-bottom: 8px; padding-left: 15px; border-left: 2px solid var(--accent-primary); position: relative; }
+      li { margin-bottom: 8px; padding-left: 15px; border-left: 2px solid var(--accent-primary); }
       
-      /* Style du bouton AJOUTER */
-      .add-item-btn { 
-        background: rgba(244, 63, 94, 0.1); 
-        color: var(--accent-primary); 
-        border: 1px dashed var(--accent-primary); 
-        padding: 5px 10px; 
-        border-radius: 6px; 
-        cursor: pointer; 
-        font-size: 0.8rem; 
-        font-family: 'Orbitron';
-        transition: 0.3s;
-      }
-      .add-item-btn:hover { background: var(--accent-primary); color: white; }
+      /* Progress Bar */
+      .progress-container { background: #000; border-radius: 20px; height: 25px; width: 100%; margin: 15px 0; overflow: hidden; border: 1px solid var(--accent-secondary); }
+      .progress-bar { background: linear-gradient(90deg, var(--accent-secondary), var(--success)); height: 100%; width: 0%; transition: width 0.5s; }
 
+      /* Inputs */
       .control-group { margin-bottom: 15px; }
+      select, input[type="number"] { background: #0f172a; color: white; border: 1px solid var(--accent-primary); padding: 5px; border-radius: 4px; width: 100%; }
       input[type="range"] { width: 100%; accent-color: var(--accent-primary); }
       .val-display { float: right; color: var(--accent-primary); font-weight: bold; }
+      
+      /* Stats */
       .stat-box { text-align: center; background: rgba(0, 0, 0, 0.2); padding: 10px; border-radius: 8px; margin-top: 10px; }
       .stat-val { font-size: 1.5rem; font-family: "Orbitron"; }
       .profit { color: var(--success); }
-      .loss { color: var(--danger); }
-      .chart-container { height: 300px; width: 100%; }
       
-      footer { text-align: center; margin-top: 50px; color: var(--text-muted); font-size: 0.8rem; }
+      /* Inventory */
+      .check-item { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; cursor: pointer; }
+      input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--success); }
+
+      footer { text-align: center; margin-top: 50px; color: var(--text-muted); }
       #sync-status { font-size: 0.7rem; margin-top: 5px; color: var(--success); opacity: 0; transition: opacity 0.5s; }
     </style>
   </head>
   <body>
     <header>
       <h1>POMKA SA</h1>
-      <p>Système Collaboratif Cloud</p>
+      <p>Cocktail Ops & Refuge Fund</p>
       <div id="sync-status">✓ Synchronisé</div>
     </header>
 
     <div class="container">
       <div class="grid">
-        <div class="grid-full"><h2>1. Business Model Canvas</h2></div>
-        
         <div class="card">
-          <h3>🛒 Proposition de Valeur</h3>
-          <ul id="list-valeur" class="bmc-list">
-            </ul>
-          <button class="add-item-btn" onclick="addNewItem('list-valeur')">＋ Ajouter un point</button>
+          <h3>🎯 Objectif Refuge</h3>
+          <p style="font-size: 0.8rem; color: var(--text-muted);">Coût de location cible (CHF):</p>
+          <input type="number" id="goalInput" value="500" oninput="calculate()">
+          <div class="progress-container">
+            <div id="progressBar" class="progress-bar"></div>
+          </div>
+          <p id="progressText" style="text-align: center; font-weight: bold;">0% financé</p>
         </div>
 
         <div class="card">
-          <h3>👥 Segments Clients</h3>
-          <ul id="list-segments" class="bmc-list">
-            </ul>
-          <button class="add-item-btn" onclick="addNewItem('list-segments')">＋ Ajouter un point</button>
+          <h3>📱 Réseau & Contacts</h3>
+          <div class="stat-box">
+            <div>Base de données VIP</div>
+            <div class="stat-val" style="color: var(--accent-secondary);" id="contactCount" contenteditable="true" onblur="saveData()">0</div>
+            <div style="font-size: 0.7rem;">Contacts récoltés</div>
+          </div>
         </div>
 
         <div class="card">
-          <h3>💰 Flux de Revenus</h3>
-          <ul id="list-revenus" class="bmc-list">
-            </ul>
-          <button class="add-item-btn" onclick="addNewItem('list-revenus')">＋ Ajouter un point</button>
+          <h3>🧊 Inventaire (Stash)</h3>
+          <div id="inventoryList">
+            <label class="check-item"><input type="checkbox" onchange="saveData()"> Alcool base (Rhum/Vodka)</label>
+            <label class="check-item"><input type="checkbox" onchange="saveData()"> Sirops & Fruits</label>
+            <label class="check-item"><input type="checkbox" onchange="saveData()"> Glace (2x 5kg)</label>
+            <label class="check-item"><input type="checkbox" onchange="saveData()"> Gobelets & Pailles</label>
+          </div>
         </div>
       </div>
 
       <div class="grid">
-        <div class="grid-full"><h2>2. Simulateur Financier & Opérationnel</h2></div>
+        <div class="grid-full"><h2>2. Simulateur Financier</h2></div>
         <div class="card">
           <div class="control-group">
+            <label>Choisir une recette</label>
+            <select id="recipeSelect" onchange="applyRecipe()">
+              <option value="custom">-- Sur mesure --</option>
+              <option value="simple">Cocktail Simple (Marge +++ )</option>
+              <option value="premium">Cocktail Premium (Frais)</option>
+              <option value="shot">Shot / Remboursement Rapide</option>
+            </select>
+          </div>
+          <hr style="opacity: 0.1; margin-bottom: 15px;">
+          <div class="control-group">
             <label>Coût Achat (CHF) <span id="costVal" class="val-display">1.50</span></label>
-            <input type="range" id="costInput" min="0.5" max="5" step="0.1" value="1.50" />
+            <input type="range" id="costInput" min="0.5" max="10" step="0.1" value="1.50" />
           </div>
           <div class="control-group">
             <label>Prix Vente (CHF) <span id="priceVal" class="val-display">5.00</span></label>
-            <input type="range" id="priceInput" min="2" max="15" step="0.5" value="5.00" />
+            <input type="range" id="priceInput" min="2" max="20" step="0.5" value="5.00" />
           </div>
           <div class="control-group">
-            <label>Ventes <span id="salesVal" class="val-display">50</span></label>
-            <input type="range" id="salesInput" min="0" max="200" step="5" value="50" />
-          </div>
-          <div class="control-group">
-            <label>Temps / Unité (min) <span id="timeVal" class="val-display">5</span></label>
-            <input type="range" id="timeInput" min="1" max="60" step="1" value="5" />
+            <label>Ventes prévues <span id="salesVal" class="val-display">50</span></label>
+            <input type="range" id="salesInput" min="0" max="300" step="5" value="50" />
           </div>
         </div>
+
         <div class="card">
           <div class="stat-box">
             <div>Bénéfice Net</div>
             <div class="stat-val profit" id="netProfit">0 CHF</div>
           </div>
           <div class="stat-box">
-            <div>Temps de Travail Total</div>
-            <div class="stat-val" id="totalTime" style="color: var(--accent-secondary);">0h 00m</div>
-          </div>
-          <div class="stat-box">
             <div>Rentabilité Horaire</div>
-            <div class="stat-val" id="hourlyRate" style="color: #eab308;">0 CHF/h</div>
+            <div class="stat-val" id="hourlyRate" style="color: var(--warning);">0 CHF/h</div>
           </div>
-        </div>
+          <input type="hidden" id="timeInput" value="5"> </div>
+        
         <div class="card grid-full"><div class="chart-container"><canvas id="scenarioChart"></canvas></div></div>
       </div>
     </div>
-
-    <footer><p>&copy; 2026 POMKA SA - Moutier, CH.</p></footer>
 
     <script>
       const SUPABASE_URL = 'https://jythapadyguuktsrkjxv.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5dGhhcGFkeWd1dWt0c3Jranh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NTM3MjksImV4cCI6MjA4NDAyOTcyOX0.8pdyVotuywtI6UpCao2lCpulTwU-4U5Lf3yv35FT-Ec';
       const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-      const syncStatus = document.getElementById('sync-status');
-      const lists = document.querySelectorAll('.bmc-list');
-      
-      // CHARGER LES DONNÉES
+      const recipes = {
+        simple: { cost: 1.20, price: 6.00 },
+        premium: { cost: 3.50, price: 12.00 },
+        shot: { cost: 0.80, price: 3.00 }
+      };
+
       async function loadData() {
         const { data } = await supabaseClient.from('content').select('data').eq('id', 1).single();
-        
         if (data && data.data) {
-          // On vide les listes HTML par défaut et on reconstruit selon Supabase
-          Object.keys(data.data).forEach(listId => {
-            const listEl = document.getElementById(listId);
-            if (listEl && Array.isArray(data.data[listId])) {
-              listEl.innerHTML = ''; // Nettoyer
-              data.data[listId].forEach(text => {
-                createLi(listEl, text);
-              });
-            }
-          });
-        } else {
-          // Si vide, créer des points par défaut
-          createLi(document.getElementById('list-valeur'), 'Nouveau point...');
-          createLi(document.getElementById('list-segments'), 'Nouveau segment...');
-          createLi(document.getElementById('list-revenus'), 'Nouveau flux...');
+          if(data.data.contacts) document.getElementById('contactCount').innerText = data.data.contacts;
+          if(data.data.goal) document.getElementById('goalInput').value = data.data.goal;
+          
+          // Restaurer Inventaire
+          const checks = document.querySelectorAll('#inventoryList input');
+          if(data.data.inventory) {
+            checks.forEach((c, i) => c.checked = data.data.inventory[i] || false);
+          }
         }
         initChart();
         calculate();
       }
 
-      // FONCTION POUR CRÉER UN ÉLÉMENT DE LISTE
-      function createLi(parentUl, text) {
-        const li = document.createElement('li');
-        li.contentEditable = "true";
-        li.innerHTML = text;
-        li.addEventListener('blur', saveData); // Sauvegarde quand on quitte le champ
-        parentUl.appendChild(li);
-      }
-
-      // AJOUTER UN NOUVEL ITEM VIA LE BOUTON
-      function addNewItem(listId) {
-        const ul = document.getElementById(listId);
-        createLi(ul, "Nouveau point...");
-        saveData(); // Sauvegarder immédiatement l'existence du nouveau point
-      }
-
-      // SAUVEGARDER LES DONNÉES
       async function saveData() {
-        syncStatus.style.opacity = 1; 
-        syncStatus.textContent = "⌛ Sauvegarde...";
+        const syncStatus = document.getElementById('sync-status');
+        syncStatus.style.opacity = 1;
         
-        let contentToSave = {};
-        lists.forEach(list => {
-          const items = [];
-          list.querySelectorAll('li').forEach(li => {
-            items.push(li.innerHTML);
-          });
-          contentToSave[list.id] = items;
-        });
+        const inventoryStates = Array.from(document.querySelectorAll('#inventoryList input')).map(c => c.checked);
+        
+        const contentToSave = {
+          contacts: document.getElementById('contactCount').innerText,
+          goal: document.getElementById('goalInput').value,
+          inventory: inventoryStates
+        };
 
-        const { error } = await supabaseClient.from('content').update({ data: contentToSave }).eq('id', 1);
-        
-        if (!error) {
-          syncStatus.textContent = "✓ Synchronisé";
-          setTimeout(() => syncStatus.style.opacity = 0, 2000);
+        await supabaseClient.from('content').update({ data: contentToSave }).eq('id', 1);
+        setTimeout(() => syncStatus.style.opacity = 0, 2000);
+      }
+
+      function applyRecipe() {
+        const val = document.getElementById('recipeSelect').value;
+        if(recipes[val]) {
+          document.getElementById('costInput').value = recipes[val].cost;
+          document.getElementById('priceInput').value = recipes[val].price;
+          calculate();
         }
       }
 
-      // LOGIQUE CALCULATEUR (Inchangée)
-      const costInput = document.getElementById("costInput");
-      const priceInput = document.getElementById("priceInput");
-      const salesInput = document.getElementById("salesInput");
-      const timeInput = document.getElementById("timeInput");
-      let scenarioChart;
+      function calculate() {
+        const cost = parseFloat(document.getElementById("costInput").value);
+        const price = parseFloat(document.getElementById("priceInput").value);
+        const sales = parseInt(document.getElementById("salesInput").value);
+        const goal = parseFloat(document.getElementById("goalInput").value) || 1;
+
+        document.getElementById("costVal").textContent = cost.toFixed(2);
+        document.getElementById("priceVal").textContent = price.toFixed(2);
+        document.getElementById("salesVal").textContent = sales;
+
+        const profit = (price - cost) * sales;
+        document.getElementById("netProfit").textContent = profit.toFixed(2) + " CHF";
+
+        // Progress Bar logic
+        const percent = Math.min(Math.max((profit / goal) * 100, 0), 100);
+        document.getElementById("progressBar").style.width = percent + "%";
+        document.getElementById("progressText").textContent = Math.round(percent) + "% financé";
+
+        // Rentabilité (basé sur 5min/verre)
+        const hourly = profit > 0 ? (profit / ((sales * 5) / 60)) : 0;
+        document.getElementById("hourlyRate").textContent = hourly.toFixed(2) + " CHF/h";
+
+        if (window.scenarioChart) {
+          window.scenarioChart.data.datasets[0].data = [profit * 0.5, profit, profit * 1.3];
+          window.scenarioChart.update();
+        }
+      }
 
       function initChart() {
         const ctx = document.getElementById("scenarioChart").getContext("2d");
-        scenarioChart = new Chart(ctx, {
+        window.scenarioChart = new Chart(ctx, {
           type: "bar",
           data: {
             labels: ["Pessimiste", "Réaliste", "Optimiste"],
@@ -228,38 +234,8 @@
         });
       }
 
-      function calculate() {
-        const cost = parseFloat(costInput.value);
-        const price = parseFloat(priceInput.value);
-        const sales = parseInt(salesInput.value);
-        const timePerUnit = parseInt(timeInput.value);
-
-        document.getElementById("costVal").textContent = cost.toFixed(2);
-        document.getElementById("priceVal").textContent = price.toFixed(2);
-        document.getElementById("salesVal").textContent = sales;
-        document.getElementById("timeVal").textContent = timePerUnit;
-
-        const profit = (price - cost) * sales;
-        const netProfitEl = document.getElementById("netProfit");
-        netProfitEl.textContent = profit.toFixed(2) + " CHF";
-        netProfitEl.className = profit >= 0 ? "stat-val profit" : "stat-val loss";
-
-        const totalMinutes = sales * timePerUnit;
-        const hours = Math.floor(totalMinutes / 60);
-        const mins = totalMinutes % 60;
-        document.getElementById("totalTime").textContent = `${hours}h ${mins.toString().padStart(2, '0')}m`;
-
-        const hourlyRate = totalMinutes > 0 ? (profit / (totalMinutes / 60)) : 0;
-        document.getElementById("hourlyRate").textContent = hourlyRate.toFixed(2) + " CHF/h";
-
-        if (scenarioChart) {
-            scenarioChart.data.datasets[0].data = [profit * 0.5, profit, profit * 1.3];
-            scenarioChart.update();
-        }
-      }
-
       window.onload = loadData;
-      [costInput, priceInput, salesInput, timeInput].forEach(input => input.addEventListener("input", calculate));
+      document.querySelectorAll('input[type="range"]').forEach(i => i.addEventListener('input', calculate));
     </script>
   </body>
 </html>
